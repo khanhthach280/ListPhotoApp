@@ -43,7 +43,10 @@ class ViewController: UIViewController {
         isLoading = true
 
         APIService.shared.fetchPhotos(page: currentPage) { [weak self] newPhotos in
-            guard let self = self, let newPhotos = newPhotos else { return }
+            guard let self = self, let newPhotos = newPhotos else {
+                self?.isLoading = false
+                return
+            }
 
             if loadMore {
                 self.photos.append(contentsOf: newPhotos)
@@ -51,9 +54,11 @@ class ViewController: UIViewController {
                 self.photos = newPhotos
             }
 
-            self.tableView.reloadData()
-            self.refreshControl.endRefreshing()
-            self.isLoading = false
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                self.refreshControl.endRefreshing()
+                self.isLoading = false
+            }
         }
     }
 }
@@ -77,7 +82,9 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         let contentHeight = scrollView.contentSize.height
         let frameHeight = scrollView.frame.size.height
 
-        if offsetY > contentHeight - frameHeight * 1.5 {
+        let threshold: CGFloat = 100  // Chỉ load thêm khi gần hết danh sách
+
+        if offsetY > contentHeight - frameHeight - threshold {
             if !isLoading {
                 currentPage += 1
                 fetchPhotos(loadMore: true)

@@ -2,6 +2,7 @@ import UIKit
 
 class PhotoCell: UITableViewCell {
     static let identifier = "PhotoCell"
+    private var currentTask: URLSessionDataTask? // Giữ track request ảnh
 
     private let photoImageView: UIImageView = {
         let imageView = UIImageView()
@@ -65,14 +66,20 @@ class PhotoCell: UITableViewCell {
     }
 
     private func loadImage(from url: URL) {
-        photoImageView.image = UIImage(named: "placeholder") // Hiển thị ảnh nền tạm thời
+        // Xóa ảnh cũ trước khi tải ảnh mới
+        photoImageView.image = nil
 
+        // Hủy request cũ nếu có
+        currentTask?.cancel()
+
+        // Kiểm tra ảnh trong cache
         if let cachedImage = ImageCache.shared.get(forKey: url.absoluteString) {
             self.photoImageView.image = cachedImage
             return
         }
 
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+        // Gửi request tải ảnh
+        currentTask = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             guard let self = self, let data = data, error == nil,
                   let image = UIImage(data: data) else { return }
 
@@ -81,6 +88,7 @@ class PhotoCell: UITableViewCell {
             DispatchQueue.main.async {
                 self.photoImageView.image = image
             }
-        }.resume()
+        }
+        currentTask?.resume()
     }
 }
