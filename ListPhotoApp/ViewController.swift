@@ -105,16 +105,30 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
 // MARK: - UISearchResultsUpdating & UISearchBarDelegate
 extension ViewController: UISearchResultsUpdating, UISearchBarDelegate {
     func updateSearchResults(for searchController: UISearchController) {
-        guard let searchText = searchController.searchBar.text?.lowercased(), !searchText.isEmpty else {
+        guard let searchText = searchController.searchBar.text else {
             filteredPhotos = photos
             tableView.reloadData()
             return
         }
 
-        filteredPhotos = photos.filter { photo in
-            return photo.id.contains(searchText) || photo.author.lowercased().contains(searchText)
+        // Giới hạn độ dài tối đa là 15 ký tự
+        let trimmedSearchText = String(searchText.prefix(15))
+
+        // Nếu người dùng nhập quá 15 ký tự, tự động cắt bớt
+        if searchText.count > 15 {
+            searchController.searchBar.text = trimmedSearchText
+        }
+
+        // Kiểm tra xem có nội dung để tìm kiếm không
+        if trimmedSearchText.isEmpty {
+            filteredPhotos = photos
+        } else {
+            filteredPhotos = photos.filter { photo in
+                return photo.id.contains(trimmedSearchText) || photo.author.lowercased().contains(trimmedSearchText.lowercased())
+            }
         }
 
         tableView.reloadData()
     }
+
 }
