@@ -77,6 +77,12 @@ class ViewController: UIViewController {
     func removeDiacritics(from text: String) -> String {
         return text.folding(options: .diacriticInsensitive, locale: .current)
     }
+
+    // MARK: - Loại bỏ ký tự đặc biệt & emoji, chỉ giữ lại ký tự hợp lệ
+    func filterValidCharacters(from text: String) -> String {
+        let allowedCharacters = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*():.,<>/\\[]? ")
+        return text.unicodeScalars.filter { allowedCharacters.contains($0) }.map { String($0) }.joined()
+    }
 }
 
 // MARK: - UITableViewDelegate & UITableViewDataSource
@@ -126,6 +132,9 @@ extension ViewController: UISearchResultsUpdating, UISearchBarDelegate {
 
         // Loại bỏ dấu khỏi chuỗi tìm kiếm
         trimmedSearchText = removeDiacritics(from: trimmedSearchText)
+
+        // Loại bỏ ký tự đặc biệt & emoji không hợp lệ
+        trimmedSearchText = filterValidCharacters(from: trimmedSearchText)
 
         // Nếu ô tìm kiếm có nội dung sai, tự động cập nhật lại text
         if searchController.searchBar.text != trimmedSearchText {
