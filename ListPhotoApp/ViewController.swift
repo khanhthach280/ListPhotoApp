@@ -72,6 +72,11 @@ class ViewController: UIViewController {
             self.isLoading = false
         }
     }
+
+    // MARK: - Loại bỏ dấu tiếng Việt
+    func removeDiacritics(from text: String) -> String {
+        return text.folding(options: .diacriticInsensitive, locale: .current)
+    }
 }
 
 // MARK: - UITableViewDelegate & UITableViewDataSource
@@ -112,14 +117,22 @@ extension ViewController: UISearchResultsUpdating, UISearchBarDelegate {
         }
 
         // Giới hạn độ dài tối đa là 15 ký tự
-        let trimmedSearchText = String(searchText.prefix(15))
+        var trimmedSearchText = String(searchText.prefix(15))
 
-        // Nếu người dùng nhập quá 15 ký tự, tự động cắt bớt
+        // Nếu nhập quá 15 ký tự, tự động cắt bớt
         if searchText.count > 15 {
             searchController.searchBar.text = trimmedSearchText
         }
 
-        // Kiểm tra xem có nội dung để tìm kiếm không
+        // Loại bỏ dấu khỏi chuỗi tìm kiếm
+        trimmedSearchText = removeDiacritics(from: trimmedSearchText)
+
+        // Nếu ô tìm kiếm có nội dung sai, tự động cập nhật lại text
+        if searchController.searchBar.text != trimmedSearchText {
+            searchController.searchBar.text = trimmedSearchText
+        }
+
+        // Kiểm tra nếu ô tìm kiếm trống thì hiển thị toàn bộ danh sách
         if trimmedSearchText.isEmpty {
             filteredPhotos = photos
         } else {
@@ -130,5 +143,4 @@ extension ViewController: UISearchResultsUpdating, UISearchBarDelegate {
 
         tableView.reloadData()
     }
-
 }
