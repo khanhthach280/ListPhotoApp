@@ -1,10 +1,3 @@
-//
-//  ImageCache.swift
-//  ListPhotoApp
-//
-//  Created by Thạch Khánh on 18/2/25.
-//
-
 import UIKit
 
 class ImageCache {

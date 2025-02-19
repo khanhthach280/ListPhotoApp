@@ -1,49 +1,72 @@
 import UIKit
 
 class PhotoCell: UITableViewCell {
-    private let photoImageView = UIImageView()
-    private let authorLabel = UILabel()
+    static let identifier = "PhotoCell"
+
+    private let photoImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+
+    private let authorLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 16)
+        return label
+    }()
+
+    private let sizeLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = .gray
+        return label
+    }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
+        contentView.addSubview(photoImageView)
+        contentView.addSubview(authorLabel)
+        contentView.addSubview(sizeLabel)
+        
+        setupConstraints()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setupUI() {
-        contentView.addSubview(photoImageView)
-        contentView.addSubview(authorLabel)
-
+    private func setupConstraints() {
         photoImageView.translatesAutoresizingMaskIntoConstraints = false
         authorLabel.translatesAutoresizingMaskIntoConstraints = false
+        sizeLabel.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             photoImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            photoImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            photoImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            photoImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            photoImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             photoImageView.heightAnchor.constraint(equalToConstant: 200),
 
             authorLabel.topAnchor.constraint(equalTo: photoImageView.bottomAnchor, constant: 8),
-            authorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            authorLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            authorLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
+            authorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            authorLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+
+            sizeLabel.topAnchor.constraint(equalTo: authorLabel.bottomAnchor, constant: 4),
+            sizeLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            sizeLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            sizeLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
         ])
     }
 
     func configure(with photo: Photo) {
-        authorLabel.text = "Author: \(photo.author)"
-        if let url = URL(string: photo.downloadURL) {
-            loadImage(from: url)
-        }
+        authorLabel.text = "📸 \(photo.author)"
+        sizeLabel.text = "\(photo.width) x \(photo.height) px"
+        loadImage(from: URL(string: photo.downloadURL)!)
     }
 
     private func loadImage(from url: URL) {
-        photoImageView.image = nil // Reset ảnh cũ để tránh flickering
+        photoImageView.image = UIImage(named: "placeholder") // Hiển thị ảnh nền tạm thời
 
-        // Kiểm tra ảnh có được cache trước đó chưa
         if let cachedImage = ImageCache.shared.get(forKey: url.absoluteString) {
             self.photoImageView.image = cachedImage
             return
@@ -53,7 +76,6 @@ class PhotoCell: UITableViewCell {
             guard let self = self, let data = data, error == nil,
                   let image = UIImage(data: data) else { return }
 
-            // Lưu vào cache
             ImageCache.shared.set(image, forKey: url.absoluteString)
 
             DispatchQueue.main.async {
