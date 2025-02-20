@@ -40,6 +40,10 @@ class PhotoListViewController: UIViewController {
         searchController.searchBar.placeholder = "Tìm kiếm theo ID hoặc Author"
         searchController.searchBar.delegate = self // Đặt delegate
         navigationItem.searchController = searchController
+        
+        if let searchTextField = searchController.searchBar.value(forKey: "searchField") as? UITextField {
+            searchTextField.delegate = self
+        }
     }
 
     private func bindViewModel() {
@@ -93,3 +97,11 @@ extension PhotoListViewController: UISearchBarDelegate {
         return newLength <= 15
     }
 }
+
+extension PhotoListViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let allowedCharacters = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*():.,<>/\\[]? ")
+        return string.rangeOfCharacter(from: allowedCharacters) != nil || string.isEmpty
+    }
+}
+
