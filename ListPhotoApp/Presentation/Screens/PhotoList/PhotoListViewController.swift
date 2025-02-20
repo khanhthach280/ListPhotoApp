@@ -103,5 +103,13 @@ extension PhotoListViewController: UITextFieldDelegate {
         let allowedCharacters = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*():.,<>/\\[]? ")
         return string.rangeOfCharacter(from: allowedCharacters) != nil || string.isEmpty
     }
+    
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        let allowedCharacters = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*():.,<>/\\[]? ")
+        let filteredText = textField.text?.filter { $0.unicodeScalars.allSatisfy { allowedCharacters.contains($0) } } ?? ""
+        
+        if textField.text != filteredText {
+            textField.text = filteredText
+        }
+    }
 }
-
