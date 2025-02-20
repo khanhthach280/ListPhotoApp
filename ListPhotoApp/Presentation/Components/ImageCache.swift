@@ -1,3 +1,9 @@
+//
+//  ImageCache.swift
+//  ListPhotoApp
+//
+//  Created by Thạch Khánh on 20/2/25.
+//
 import UIKit
 
 class ImageCache {
@@ -14,3 +20,4 @@ class ImageCache {
         cache.setObject(image, forKey: key as NSString)
     }
 }
+
