@@ -7,6 +7,7 @@ class ViewController: UIViewController {
     private var filteredPhotos: [Photo] = []
     private var currentPage = 1
     private var isLoading = false
+    private var isSearching = false // Thêm biến kiểm tra trạng thái tìm kiếm
     private let searchController = UISearchController(searchResultsController: nil)
 
     override func viewDidLoad() {
@@ -104,6 +105,9 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         let contentHeight = scrollView.contentSize.height
         let frameHeight = scrollView.frame.size.height
 
+        // Không gọi API nếu đang tìm kiếm
+        if isSearching { return }
+
         if offsetY > contentHeight - frameHeight * 1.5 {
             if !isLoading {
                 currentPage += 1
@@ -121,6 +125,9 @@ extension ViewController: UISearchResultsUpdating, UISearchBarDelegate {
             tableView.reloadData()
             return
         }
+
+        // Kiểm tra trạng thái tìm kiếm
+        isSearching = !searchText.isEmpty
 
         // Giới hạn độ dài tối đa là 15 ký tự
         var trimmedSearchText = String(searchText.prefix(15))
@@ -143,6 +150,7 @@ extension ViewController: UISearchResultsUpdating, UISearchBarDelegate {
 
         // Kiểm tra nếu ô tìm kiếm trống thì hiển thị toàn bộ danh sách
         if trimmedSearchText.isEmpty {
+            isSearching = false // Khi xóa nội dung tìm kiếm, cho phép gọi API khi scroll
             filteredPhotos = photos
         } else {
             filteredPhotos = photos.filter { photo in
@@ -150,6 +158,12 @@ extension ViewController: UISearchResultsUpdating, UISearchBarDelegate {
             }
         }
 
+        tableView.reloadData()
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        isSearching = false // Khi bấm "Cancel", cho phép gọi API khi scroll
+        filteredPhotos = photos
         tableView.reloadData()
     }
 }
