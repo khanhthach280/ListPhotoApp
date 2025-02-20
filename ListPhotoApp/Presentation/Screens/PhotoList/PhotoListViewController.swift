@@ -8,11 +8,21 @@ class PhotoListViewController: UIViewController {
     private var viewModel: PhotoListViewModel!
     private var isLoadingMore = false
 
+    // Loading indicator cho paging
+    private let loadingIndicator: UIActivityIndicatorView = {
+        if #available(iOS 13.0, *) {
+            return UIActivityIndicatorView(style: .medium)
+        } else {
+            return UIActivityIndicatorView(style: .gray) // Hỗ trợ iOS 12
+        }
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "List Photos"
         setupTableView()
         setupSearchController()
+        setupLoadingIndicator()
         bindViewModel()
         viewModel.fetchPhotos()
     }
@@ -46,11 +56,25 @@ class PhotoListViewController: UIViewController {
         }
     }
 
+    private func setupLoadingIndicator() {
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(loadingIndicator)
+        
+        NSLayoutConstraint.activate([
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+        ])
+    }
+
     private func bindViewModel() {
         viewModel = PhotoListViewModel()
         viewModel.onDataUpdated = { [weak self] in
-            self?.isLoadingMore = false
-            self?.tableView.reloadData()
+            DispatchQueue.main.async {
+                self?.isLoadingMore = false
+                self?.loadingIndicator.stopAnimating()
+                self?.tableView.reloadData()
+            }
         }
     }
 
@@ -77,6 +101,7 @@ extension PhotoListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if indexPath.row == viewModel.filteredPhotos.count - 1 && !isLoadingMore {
             isLoadingMore = true
+            loadingIndicator.startAnimating() // Hiển thị loading indicator
             viewModel.loadMorePhotos()
         }
     }

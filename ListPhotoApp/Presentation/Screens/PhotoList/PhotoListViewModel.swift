@@ -7,14 +7,15 @@ class PhotoListViewModel {
     var onDataUpdated: (() -> Void)?
     private var currentPage = 1
     private var isLoadingMore = false
-    private var isSearching = false // Biến để kiểm tra trạng thái tìm kiếm
+    private var isSearching = false
 
     init(getPhotosUseCase: GetPhotosUseCase = GetPhotosUseCase(repository: PhotoRepository())) {
         self.getPhotosUseCase = getPhotosUseCase
     }
 
     func fetchPhotos(page: Int = 1) {
-        guard !isSearching else { return } // Không gọi API khi đang search
+        guard !isSearching else { return }
+        currentPage = 1 // Reset lại page khi fetch mới
         getPhotosUseCase.execute(page: page) { [weak self] newPhotos in
             guard let self = self, let newPhotos = newPhotos else { return }
             self.photos = newPhotos
@@ -23,16 +24,26 @@ class PhotoListViewModel {
         }
     }
 
-    func loadMorePhotos() {
-        guard !isLoadingMore, !isSearching else { return } // Không gọi API khi đang search
+    func loadMorePhotos(completion: (() -> Void)? = nil) {
+        guard !isLoadingMore, !isSearching else {
+            completion?()
+            return
+        }
+        
         isLoadingMore = true
         currentPage += 1
+
         getPhotosUseCase.execute(page: currentPage) { [weak self] newPhotos in
-            guard let self = self, let newPhotos = newPhotos else { return }
+            guard let self = self, let newPhotos = newPhotos else {
+                completion?()
+                return
+            }
+            
             self.photos.append(contentsOf: newPhotos)
             self.filteredPhotos.append(contentsOf: newPhotos)
             self.isLoadingMore = false
             self.onDataUpdated?()
+            completion?()
         }
     }
 
