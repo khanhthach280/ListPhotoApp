@@ -38,6 +38,7 @@ class PhotoListViewController: UIViewController {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Tìm kiếm theo ID hoặc Author"
+        searchController.searchBar.delegate = self // Đặt delegate
         navigationItem.searchController = searchController
     }
 
@@ -81,5 +82,14 @@ extension PhotoListViewController: UITableViewDelegate, UITableViewDataSource {
 extension PhotoListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         viewModel.search(text: searchController.searchBar.text)
+    }
+}
+
+// MARK: - UISearchBarDelegate
+extension PhotoListViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        let currentText = searchBar.text ?? ""
+        let newLength = currentText.count + text.count - range.length
+        return newLength <= 15
     }
 }
